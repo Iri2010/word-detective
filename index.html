@@ -1,314 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Word Detective — a fun vocabulary mystery game. Solve cases, collect clues, and master your vocabulary.">
-  <meta name="theme-color" content="#111827">
-  <title>Word Detective — Vocabulary Mystery Game</title>
-  <style>
-    :root{
-      --bg:#0b1020; --card:#141b2f; --card2:#1b2540; --text:#f8fafc;
-      --muted:#aab4ca; --accent:#7c3aed; --accent2:#22d3ee;
-      --good:#34d399; --bad:#fb7185; --gold:#fbbf24; --line:#2b3654;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0; min-height:100vh; color:var(--text);
-      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      background:
-        radial-gradient(circle at 15% 10%, rgba(124,58,237,.24), transparent 28%),
-        radial-gradient(circle at 85% 15%, rgba(34,211,238,.16), transparent 25%),
-        var(--bg);
-    }
-    button,input{font:inherit}
-    .wrap{width:min(1050px,92%);margin:auto}
-    header{padding:34px 0 18px}
-    .brand{display:flex;align-items:center;gap:14px}
-    .logo{font-size:42px;filter:drop-shadow(0 0 15px rgba(124,58,237,.5))}
-    h1{margin:0;font-size:clamp(28px,5vw,46px);letter-spacing:-1px}
-    .tag{color:var(--muted);margin:5px 0 0}
-    .nav{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0}
-    .nav button,.btn{
-      border:1px solid var(--line);background:var(--card);color:var(--text);
-      padding:11px 16px;border-radius:12px;cursor:pointer;font-weight:700;
-    }
-    .nav button.active,.btn.primary{
-      background:linear-gradient(135deg,var(--accent),#5b21b6);border-color:transparent;
-    }
-    .btn:hover,.nav button:hover{transform:translateY(-1px)}
-    .screen{display:none}.screen.active{display:block}
-    .hero,.game-card,.case-card,.results,.evidence{
-      background:rgba(20,27,47,.88);border:1px solid var(--line);
-      border-radius:22px;box-shadow:0 18px 60px rgba(0,0,0,.25);
-    }
-    .hero{padding:30px}
-    .hero h2{font-size:32px;margin:0 0 8px}
-    .hero p{color:var(--muted);line-height:1.6}
-    .case-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:22px}
-    .case-card{padding:20px;cursor:pointer;transition:.2s}
-    .case-card:hover{transform:translateY(-4px);border-color:#6956a8}
-    .case-icon{font-size:34px}.case-card h3{margin:10px 0 5px}.case-card p{color:var(--muted);font-size:14px}
-    .difficulty{display:inline-block;padding:5px 9px;border-radius:999px;background:#222d4b;color:#cbd5e1;font-size:12px}
-    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}
-    .stat{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px;text-align:center}
-    .stat b{display:block;font-size:22px}.stat span{font-size:12px;color:var(--muted)}
-    .game-card{padding:26px}
-    .topline{display:flex;justify-content:space-between;gap:12px;align-items:center;color:var(--muted);font-size:14px}
-    .bar{height:8px;background:#252f4b;border-radius:99px;overflow:hidden;margin:14px 0 24px}
-    .bar>div{height:100%;width:0;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:.3s}
-    .case-title{font-size:14px;color:var(--accent2);text-transform:uppercase;letter-spacing:1.4px;font-weight:800}
-    .story{font-size:19px;line-height:1.7;margin:10px 0 20px}
-    .target{display:inline-block;padding:2px 8px;border-radius:8px;background:#312e81;color:#ddd6fe;font-weight:900}
-    .answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .answer{
-      text-align:left;padding:17px;border-radius:15px;border:1px solid var(--line);
-      background:#11182b;color:var(--text);cursor:pointer;transition:.15s;
-    }
-    .answer:hover{border-color:#7c3aed;background:#19213a}
-    .answer.correct{border-color:var(--good);background:rgba(52,211,153,.12)}
-    .answer.wrong{border-color:var(--bad);background:rgba(251,113,133,.12)}
-    .feedback{min-height:52px;margin:18px 0 4px;color:var(--muted);line-height:1.5}
-    .feedback.good{color:var(--good)}.feedback.bad{color:var(--bad)}
-    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    .clue{
-      background:#19152a;border:1px dashed #6956a8;color:#ddd6fe;border-radius:13px;
-      padding:12px 14px;margin:14px 0;display:none;
-    }
-    .results{padding:30px;text-align:center}
-    .score-big{font-size:64px;font-weight:900;background:linear-gradient(90deg,#a78bfa,#22d3ee);
-      -webkit-background-clip:text;background-clip:text;color:transparent}
-    .evidence{padding:22px;margin-top:18px}
-    .evidence h3{margin-top:0}.evidence-list{display:flex;gap:9px;flex-wrap:wrap}
-    .chip{padding:8px 11px;border-radius:999px;background:#222d4b;color:#dbeafe;font-size:13px}
-    .learn-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-    .learn-card{padding:20px;background:var(--card);border:1px solid var(--line);border-radius:18px}
-    .learn-card h3{margin-top:0}.learn-card p{color:var(--muted);line-height:1.6}
-    .search{width:100%;padding:14px 16px;border-radius:14px;border:1px solid var(--line);
-      background:#0f172a;color:white;outline:none;margin:10px 0 18px}
-    .word-row{display:flex;justify-content:space-between;gap:10px;padding:13px 0;border-bottom:1px solid var(--line)}
-    .word-row b{color:#c4b5fd}.word-row span{color:var(--muted);text-align:right}
-    footer{color:#71809e;text-align:center;padding:30px 0}
-    @media(max-width:650px){.answers,.learn-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.hero,.game-card,.results{padding:20px}}
-  </style>
-</head>
-<body>
-<div class="wrap">
-  <header>
-    <div class="brand">
-      <div class="logo">🕵️</div>
-      <div>
-        <h1>Word Detective</h1>
-        <div class="tag">Solve the case. Find the meaning. Master the word.</div>
-      </div>
-    </div>
-    <div class="nav">
-      <button class="active" data-screen="home">Cases</button>
-      <button data-screen="dictionary">Evidence Room</button>
-      <button data-screen="how">How to Play</button>
-    </div>
-  </header>
-
-  <main>
-    <section id="home" class="screen active">
-      <div class="hero">
-        <h2>🗂️ Choose a case</h2>
-        <p>Every case hides vocabulary inside a mini mystery. Read the scene, identify the word, collect evidence, and try to beat your high score.</p>
-        <div class="case-grid" id="caseGrid"></div>
-      </div>
-    </section>
-
-    <section id="game" class="screen">
-      <div class="stats">
-        <div class="stat"><b id="score">0</b><span>Score</span></div>
-        <div class="stat"><b id="streak">0</b><span>Streak</span></div>
-        <div class="stat"><b id="lives">❤️❤️❤️</b><span>Lives</span></div>
-        <div class="stat"><b id="timer">30</b><span>Seconds</span></div>
-      </div>
-      <div class="game-card">
-        <div class="topline"><span id="questionCount">Case 1 / 5</span><span id="points">+100 pts</span></div>
-        <div class="bar"><div id="progress"></div></div>
-        <div class="case-title" id="caseTitle"></div>
-        <div class="story" id="story"></div>
-        <button class="btn" id="clueBtn">🔎 Use a clue (-20 pts)</button>
-        <div class="clue" id="clue"></div>
-        <div class="answers" id="answers"></div>
-        <div class="feedback" id="feedback"></div>
-        <div class="actions">
-          <button class="btn primary" id="nextBtn" style="display:none">Next evidence →</button>
-          <button class="btn" id="quitBtn">Exit case</button>
-        </div>
-      </div>
-      <div class="evidence">
-        <h3>📌 Evidence collected</h3>
-        <div class="evidence-list" id="evidenceList"><span class="chip">No evidence yet...</span></div>
-      </div>
-    </section>
-
-    <section id="results" class="screen">
-      <div class="results">
-        <div style="font-size:48px">🏆</div>
-        <h2>Case Closed!</h2>
-        <div class="score-big" id="finalScore">0</div>
-        <p id="resultText"></p>
-        <div class="actions" style="justify-content:center">
-          <button class="btn primary" id="againBtn">🔁 Solve another case</button>
-          <button class="btn" id="homeBtn">← Back to cases</button>
-        </div>
-      </div>
-    </section>
-
-    <section id="dictionary" class="screen">
-      <div class="hero">
-        <h2>🗃️ Evidence Room</h2>
-        <p>Search every vocabulary word used in the game.</p>
-        <input class="search" id="wordSearch" placeholder="Search a word or meaning...">
-        <div id="wordList"></div>
-      </div>
-    </section>
-
-    <section id="how" class="screen">
-      <div class="hero">
-        <h2>🎯 How to Play</h2>
-        <div class="learn-grid">
-          <div class="learn-card"><h3>1. Pick a case</h3><p>Start with an easy case or challenge yourself with a harder mystery.</p></div>
-          <div class="learn-card"><h3>2. Read the scene</h3><p>Look at the context around the highlighted vocabulary word. Context is your first clue.</p></div>
-          <div class="learn-card"><h3>3. Collect evidence</h3><p>Choose the meaning. Correct answers add the word to your evidence board.</p></div>
-          <div class="learn-card"><h3>4. Beat your score</h3><p>Keep a streak, answer quickly, and use clues only when you really need them.</p></div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer>Word Detective • A vocabulary game for students</footer>
-</div>
-
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Word Detective — Unit 1</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#26345d,#0b0f1d 60%);color:#f7f8ff;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{max-width:950px;margin:auto;padding:28px 18px 50px}.top{display:flex;justify-content:space-between;align-items:center}.logo{font-size:24px;font-weight:900}.tag{padding:7px 12px;border:1px solid #ffffff25;border-radius:99px;color:#c8d0ee;font-size:13px}
+.hero{text-align:center;padding:45px 0 25px}.hero h1{font-size:clamp(40px,7vw,64px);margin:0 0 8px;letter-spacing:-2px}.hero p{color:#aeb8d8;font-size:17px}
+.panel{background:#12182bee;border:1px solid #ffffff18;border-radius:24px;padding:24px;box-shadow:0 20px 70px #0008}.modes{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}.modes button{border:1px solid #ffffff20;background:#ffffff0c;color:#e9edff;padding:10px 14px;border-radius:99px;cursor:pointer}.modes .active{background:#8fdcff;color:#08101b;font-weight:800}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{background:#ffffff08;border-radius:15px;padding:12px;text-align:center}.stat b{display:block;font-size:24px}.stat span{font-size:11px;color:#9fa9ca}.progress{height:8px;background:#ffffff0c;border-radius:99px;margin:18px 0 24px;overflow:hidden}.bar{height:100%;width:0;background:#8fdcff}
+.case{font-size:12px;letter-spacing:1.5px;color:#8fdcff;font-weight:900}.question{font-size:clamp(21px,4vw,30px);line-height:1.4;font-weight:750;margin:10px 0 22px}.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}.choice{background:#1b2340;color:#fff;border:1px solid #ffffff18;border-radius:15px;padding:16px;text-align:left;cursor:pointer;font-size:15px;transition:.15s}.choice:hover{transform:translateY(-2px);background:#253052}.choice.correct{background:#123d32;border-color:#55e0b2}.choice.wrong{background:#49212d;border-color:#ff7891}.feedback{min-height:45px;padding-top:14px;font-weight:800}.controls{display:flex;justify-content:space-between;margin-top:10px;gap:10px}.action{border:0;border-radius:13px;padding:12px 18px;font-weight:900;cursor:pointer;background:#8fdcff;color:#08101b}.secondary{background:#ffffff10;color:#eef1ff;border:1px solid #ffffff18}.end{display:none;text-align:center;padding:25px}.big{font-size:70px;font-weight:950;margin:8px}.muted{color:#aeb8d8}
+@media(max-width:650px){.choices{grid-template-columns:1fr}.panel{padding:18px}}
+</style></head>
+<body><div class="wrap">
+<div class="top"><div class="logo">🕵️ Word Detective</div><div class="tag">Unit 1 • Digital Information</div></div>
+<div class="hero"><h1>Solve the Vocabulary Case.</h1><p>Find the word. Build your streak. Close every case.</p></div>
+<div class="panel">
+<div class="modes"><button id="dm" class="active" onclick="setMode('def')">Definition → Word</button><button id="wm" onclick="setMode('word')">Word → Definition</button></div>
+<div class="stats"><div class="stat"><b id="score">0</b><span>SCORE</span></div><div class="stat"><b id="streak">0</b><span>STREAK 🔥</span></div><div class="stat"><b id="num">1</b><span>CASE</span></div></div>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<div id="game"><div class="case">🔎 CASE FILE</div><div class="question" id="q"></div><div class="choices" id="choices"></div><div class="feedback" id="fb"></div><div class="controls"><button class="action secondary" onclick="restart()">↻ Restart</button><button class="action" id="next" onclick="nextQ()" disabled>Next Case →</button></div></div>
+<div class="end" id="end"><div class="case">🎉 CASE CLOSED</div><div class="big" id="final">0</div><h2>Great detective work!</h2><p class="muted" id="finalText"></p><button class="action" onclick="restart()">Play Again</button></div>
+</div></div>
 <script>
-const cases = [
-  {
-    id:"midnight", icon:"🌙", title:"The Midnight Museum", difficulty:"Easy",
-    intro:"A security guard hears a strange sound after the museum closes.",
-    questions:[
-      {word:"reluctant", story:"Maya was <target>reluctant</target> to enter the dark gallery because she had heard a strange noise.", answer:"unwilling or hesitant", options:["unwilling or hesitant","very excited","extremely hungry","completely certain"], clue:"Think: someone who does NOT really want to do something.", explanation:"Reluctant means unwilling or hesitant to do something."},
-      {word:"vivid", story:"The security camera captured a <target>vivid</target> image of the person near the painting.", answer:"very clear and detailed", options:["very clear and detailed","almost invisible","very boring","completely fake"], clue:"Think: an image with strong, clear details.", explanation:"Vivid describes something very clear, bright, or detailed."},
-      {word:"peculiar", story:"The detective noticed a <target>peculiar</target> footprint beside the locked door.", answer:"strange or unusual", options:["strange or unusual","perfectly normal","very expensive","extremely large"], clue:"Think: something that makes you say, “That's weird.”", explanation:"Peculiar means strange or unusual."},
-      {word:"vanish", story:"When the lights came back on, the mysterious visitor seemed to <target>vanish</target>.", answer:"disappear suddenly", options:["disappear suddenly","run very slowly","become louder","fall asleep"], clue:"Think: the opposite of appear.", explanation:"Vanish means to disappear."},
-      {word:"scrutinize", story:"The detective began to <target>scrutinize</target> every detail of the security footage.", answer:"examine very carefully", options:["examine very carefully","ignore completely","destroy quickly","memorize randomly"], clue:"Think: look at something extremely closely.", explanation:"Scrutinize means to examine something very carefully."}
-    ]
-  },
-  {
-    id:"train", icon:"🚂", title:"The Missing Ticket", difficulty:"Medium",
-    intro:"A valuable train ticket disappears minutes before departure.",
-    questions:[
-      {word:"conspicuous", story:"The bright red envelope was <target>conspicuous</target> on the plain wooden desk.", answer:"easy to notice", options:["easy to notice","difficult to open","very old","completely empty"], clue:"Think: it stands out from everything around it.", explanation:"Conspicuous means easy to see or notice."},
-      {word:"plausible", story:"The suspect gave a <target>plausible</target> explanation for why he left the station.", answer:"reasonable and believable", options:["reasonable and believable","obviously impossible","very angry","extremely complicated"], clue:"A plausible story could actually be true.", explanation:"Plausible means seeming reasonable or likely to be true."},
-      {word:"deceive", story:"The detective realized someone had tried to <target>deceive</target> the passengers.", answer:"trick or mislead", options:["trick or mislead","help honestly","follow closely","invite politely"], clue:"Think: deliberately make someone believe something false.", explanation:"Deceive means to trick or mislead someone."},
-      {word:"retrieve", story:"The detective returned to the platform to <target>retrieve</target> the missing ticket.", answer:"get back or recover", options:["get back or recover","throw away","hide permanently","copy carefully"], clue:"You go and get something that was lost.", explanation:"Retrieve means to get or bring something back."},
-      {word:"ambiguous", story:"The note was so <target>ambiguous</target> that nobody knew exactly what the writer meant.", answer:"having more than one possible meaning", options:["having more than one possible meaning","very easy to understand","written in red","extremely long"], clue:"The message is unclear because it can be interpreted in different ways.", explanation:"Ambiguous means open to more than one interpretation."}
-    ]
-  },
-  {
-    id:"library", icon:"📚", title:"The Library Cipher", difficulty:"Hard",
-    intro:"A coded message is hidden inside an old book.",
-    questions:[
-      {word:"meticulous", story:"Lena was <target>meticulous</target> when copying the symbols from the ancient page.", answer:"extremely careful and precise", options:["extremely careful and precise","careless and rushed","loud and confident","easily distracted"], clue:"A meticulous person pays attention to tiny details.", explanation:"Meticulous means very careful and precise."},
-      {word:"infer", story:"From the pattern of symbols, Lena could <target>infer</target> that the message pointed to the basement.", answer:"reach a conclusion from evidence", options:["reach a conclusion from evidence","erase evidence","ask a question","change a fact"], clue:"You don't know directly; you figure it out from clues.", explanation:"Infer means to reach a conclusion based on evidence."},
-      {word:"obscure", story:"The final clue was written in an <target>obscure</target> corner of the book that few readers noticed.", answer:"not well known or difficult to notice", options:["not well known or difficult to notice","very famous","brightly colored","completely modern"], clue:"Think: hidden, unknown, or hard to see.", explanation:"Obscure can mean not well known or difficult to notice."},
-      {word:"coherent", story:"After arranging the clues, the detective finally had a <target>coherent</target> explanation.", answer:"logical and easy to understand", options:["logical and easy to understand","completely random","very emotional","impossible to hear"], clue:"The ideas fit together and make sense.", explanation:"Coherent means logical, connected, and easy to understand."},
-      {word:"reconcile", story:"The detective had to <target>reconcile</target> two witness statements that seemed to disagree.", answer:"make two things agree or fit together", options:["make two things agree or fit together","hide both statements","copy one statement","forget the evidence"], clue:"Think: solve a disagreement between two pieces of information.", explanation:"Reconcile means to make ideas, facts, or people compatible."}
-    ]
-  }
-];
-
-const allWords = cases.flatMap(c=>c.questions.map(q=>({word:q.word,meaning:q.answer,case:c.title})));
-
-let currentCase=null, qIndex=0, score=0, streak=0, lives=3, timeLeft=30, timer=null, clueUsed=false, answered=false, evidence=[];
-
-const $=id=>document.getElementById(id);
-function showScreen(id){
-  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-  $(id).classList.add("active");
-  document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.screen===id));
-}
-document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>showScreen(b.dataset.screen));
-
-function renderCases(){
-  $("caseGrid").innerHTML=cases.map(c=>`
-    <div class="case-card" onclick="startCase('${c.id}')">
-      <div class="case-icon">${c.icon}</div>
-      <span class="difficulty">${c.difficulty}</span>
-      <h3>${c.title}</h3>
-      <p>${c.intro}</p>
-      <button class="btn primary">Open case →</button>
-    </div>`).join("");
-}
-function startCase(id){
-  currentCase=cases.find(c=>c.id===id); qIndex=0; score=0; streak=0; lives=3; evidence=[]; showScreen("game"); loadQuestion();
-}
-function loadQuestion(){
-  clearInterval(timer); answered=false; clueUsed=false; timeLeft=30;
-  const q=currentCase.questions[qIndex];
-  $("score").textContent=score; $("streak").textContent=streak; $("lives").textContent="❤️".repeat(lives);
-  $("timer").textContent=timeLeft; $("questionCount").textContent=`Evidence ${qIndex+1} / ${currentCase.questions.length}`;
-  $("points").textContent="+100 pts"; $("progress").style.width=`${(qIndex/currentCase.questions.length)*100}%`;
-  $("caseTitle").textContent=`${currentCase.icon} ${currentCase.title}`;
-  $("story").innerHTML=q.story.replace("<target>","<span class='target'>").replace("</target>","</span>");
-  $("clue").style.display="none"; $("clue").textContent=q.clue;
-  $("clueBtn").disabled=false; $("clueBtn").style.opacity=1;
-  $("feedback").className="feedback"; $("feedback").textContent="Choose the meaning that best fits the scene.";
-  $("nextBtn").style.display="none";
-  $("answers").innerHTML=q.options.map((o,i)=>`<button class="answer" onclick="chooseAnswer(this,${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join("");
-  timer=setInterval(()=>{timeLeft--; $("timer").textContent=timeLeft; if(timeLeft<=0){clearInterval(timer); timeUp();}},1000);
-}
-function timeUp(){
-  if(answered)return; answered=true; lives--; streak=0;
-  document.querySelectorAll(".answer").forEach(b=>b.disabled=true);
-  $("feedback").className="feedback bad"; $("feedback").textContent="⏰ Time's up! The evidence slipped away. "+currentCase.questions[qIndex].explanation;
-  if(lives<=0){setTimeout(finishCase,900);return}
-  $("nextBtn").style.display="inline-block";
-}
-function chooseAnswer(btn,index){
-  if(answered)return; answered=true; clearInterval(timer);
-  const q=currentCase.questions[qIndex];
-  document.querySelectorAll(".answer").forEach(b=>b.disabled=true);
-  if(q.options[index]===q.answer){
-    btn.classList.add("correct"); streak++; const gained=Math.max(40,100+(streak-1)*20-(clueUsed?20:0)); score+=gained;
-    evidence.push(q.word); $("feedback").className="feedback good"; $("feedback").textContent=`✅ Correct! +${gained} points. ${q.explanation}`;
-  }else{
-    btn.classList.add("wrong"); lives--; streak=0;
-    document.querySelectorAll(".answer").forEach(b=>{if(b.textContent.includes(q.answer))b.classList.add("correct")});
-    $("feedback").className="feedback bad"; $("feedback").textContent=`❌ Not quite. ${q.explanation}`;
-  }
-  $("score").textContent=score; $("streak").textContent=streak; $("lives").textContent="❤️".repeat(Math.max(0,lives))+"🖤".repeat(3-Math.max(0,lives));
-  renderEvidence();
-  if(lives<=0){setTimeout(finishCase,1100)}else $("nextBtn").style.display="inline-block";
-}
-$("nextBtn").onclick=()=>{qIndex++; if(qIndex>=currentCase.questions.length)finishCase();else loadQuestion()};
-$("clueBtn").onclick=()=>{if(clueUsed||answered)return; clueUsed=true; score=Math.max(0,score-20); $("score").textContent=score; $("clue").style.display="block"; $("clueBtn").disabled=true; $("clueBtn").style.opacity=.5;};
-$("quitBtn").onclick=()=>{clearInterval(timer);showScreen("home")};
-function renderEvidence(){
-  $("evidenceList").innerHTML=evidence.length?evidence.map(w=>`<span class="chip">🔎 ${w}</span>`).join(""):"<span class='chip'>No evidence yet...</span>";
-}
-function finishCase(){
-  clearInterval(timer); $("finalScore").textContent=score;
-  const total=currentCase.questions.length;
-  const percent=Math.round((evidence.length/total)*100);
-  $("resultText").textContent=`You solved ${evidence.length} of ${total} clues (${percent}%). ${score>=450?"Excellent detective work!":"Keep practicing and try the case again."}`;
-  const best=Number(localStorage.getItem("wordDetectiveBest")||0);
-  if(score>best)localStorage.setItem("wordDetectiveBest",score);
-  showScreen("results");
-}
-$("againBtn").onclick=()=>showScreen("home");
-$("homeBtn").onclick=()=>showScreen("home");
-
-function renderDictionary(filter=""){
-  const f=filter.toLowerCase();
-  const list=allWords.filter(x=>x.word.includes(f)||x.meaning.toLowerCase().includes(f));
-  $("wordList").innerHTML=list.map(x=>`<div class="word-row"><b>${x.word}</b><span>${x.meaning} • ${x.case}</span></div>`).join("") || "<p style='color:var(--muted)'>No evidence found.</p>";
-}
-$("wordSearch").oninput=e=>renderDictionary(e.target.value);
-
-renderCases(); renderDictionary();
-</script>
-</body>
-</html>
+const WORDS=[{"word": "Innovation", "defn": "A new or improved idea, device, product, etc, or the development thereof."}, {"word": "Computing Innovation", "defn": "An innovation that includes a computer or program code as an integral part of its functionality"}, {"word": "Binary", "defn": "A way of representing information using only two options"}, {"word": "Bit", "defn": "A contraction of \"Binary Digit\"; the single unit of information in a computer, typically represented as a 0 or 1"}, {"word": "Byte", "defn": "8 bits"}, {"word": "Decimal", "defn": "A way of representing information using ten options"}, {"word": "Overflow Error", "defn": "Error from attempting to represent a number that is too large"}, {"word": "Round-off Error", "defn": "Error from attempting to represent a number that is too precise. The value is rounded."}, {"word": "ASCII", "defn": "American Standard Code for Information Interchange; the universally recognized raw text format that any computer can understand."}, {"word": "Abstraction", "defn": "A simplified representation of something more complex."}, {"word": "Analog Data", "defn": "Data with values that change continuously, or smoothly, over time. Some examples of analog data include music, colors of a painting, or position of a sprinter during a race."}, {"word": "Digital Data", "defn": "Data that changes discretely through a finite set of possible values"}, {"word": "Sampling", "defn": "A process for creating a digital representation of analog data by measuring the analog data at regular intervals called samples."}, {"word": "Lossless Compression", "defn": "A process for reducing the number of bits needed to represent something without losing any information. This process is reversible."}, {"word": "Lossy Compression", "defn": "A process for reducing the number of bits needed to represent something in which some information is lost or thrown away. This process is not reversible."}, {"word": "Creative Commons", "defn": "A collection of public copyright licenses that enable the free distribution of an otherwise copyrighted work, used when an author wants to give people the right to share, use, and build upon a work that they have created"}, {"word": "Intellectual Property", "defn": "A work or invention that is the result of creativity, such as a piece of writing or a design, to which one has rights and for which one may apply for a patent, copyright, trademark, etc."}, {"word": "Pixel", "defn": "Short for “picture element”. It is the fundamental unit of a digital image, typically a tiny square or dot which contains a single point of color of a larger image."}, {"word": "Metadata", "defn": "Data that describes other data."}, {"word": "Kilobyte (KB)", "defn": "1024 Bytes"}, {"word": "Megabyte (MB)", "defn": "1024 Kilobytes"}, {"word": "Gigabyte (GB)", "defn": "1024 Megabytes"}, {"word": "Terabyte (TB)", "defn": "1024 Gigabytes"}, {"word": "Petabyte (PB)", "defn": "1024 Terabytes"}];
+let mode='def',order=[],i=0,score=0,streak=0,answered=false;
+const shuffle=a=>[...a].sort(()=>Math.random()-.5);
+function restart(){order=shuffle(WORDS);i=0;score=0;streak=0;document.getElementById('game').style.display='block';document.getElementById('end').style.display='none';render()}
+function setMode(m){mode=m;document.getElementById('dm').classList.toggle('active',m==='def');document.getElementById('wm').classList.toggle('active',m==='word');restart()}
+function render(){answered=false;let x=order[i];document.getElementById('score').textContent=score;document.getElementById('streak').textContent=streak;document.getElementById('num').textContent=(i+1)+'/'+order.length;document.getElementById('bar').style.width=(i/order.length*100)+'%';document.getElementById('next').disabled=true;document.getElementById('fb').textContent='';document.getElementById('q').textContent=mode==='def'?x.defn:x.word;
+let opts=shuffle([x,...shuffle(WORDS.filter(y=>y.word!==x.word)).slice(0,3)]),box=document.getElementById('choices');box.innerHTML='';
+opts.forEach(o=>{let b=document.createElement('button');b.className='choice';b.textContent=mode==='def'?o.word:o.defn;b.onclick=()=>choose(b,o.word===x.word);box.appendChild(b)})}
+function choose(btn,ok){if(answered)return;answered=true;document.querySelectorAll('.choice').forEach(b=>b.disabled=true);let x=order[i];
+if(ok){let pts=10+Math.min(streak+1,5)*2;score+=pts;streak++;btn.classList.add('correct');document.getElementById('fb').textContent='✅ Case solved! +'+pts+' points'}else{streak=0;btn.classList.add('wrong');document.querySelectorAll('.choice').forEach(b=>{if(b.textContent===(mode==='def'?x.word:x.defn))b.classList.add('correct')});document.getElementById('fb').textContent='❌ Not quite. Answer: '+x.word}
+document.getElementById('score').textContent=score;document.getElementById('streak').textContent=streak;document.getElementById('next').disabled=false}
+function nextQ(){if(!answered)return;i++;if(i>=order.length){document.getElementById('game').style.display='none';document.getElementById('end').style.display='block';document.getElementById('final').textContent=score;document.getElementById('finalText').textContent='You solved all '+order.length+' Unit 1 vocabulary cases.'}else render()}
+restart();
+</script></body></html>
